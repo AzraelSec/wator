@@ -1,0 +1,115 @@
+#!/bin/bash
+#\file watorscript
+#	Script per il controllo del file di configurazione del pianeta.
+#\author Federico Gerardi
+
+#Si crea un array in cui salvo tutti i valori passati in input allo script.
+args=("$@")
+
+#Si creano degli indici di conteggio per il numero di occorrenze delle opzioni valide.
+countf=0
+counts=0
+chkpath=""
+
+function usage
+{
+	echo "#################################################"
+	echo "# Script per il controllo di file pianeta WATOR #"
+	echo "#################################################"
+	echo ""
+	echo "Usage: $0 [ options ] path_file_planet"
+	echo "options: -f     => Conta il numero di pesci"
+	echo "         -s     => Conta il numero di squali"
+	echo "         --help => Stampa questo banner"
+}
+
+#Vengono effettuate le validazioni sull'input
+for arg in ${args[*]}; do
+	if [ $arg == '-f' ]; then
+		(( countf++ )) 
+	elif [ $arg == '-s' ]; then
+		(( counts++ ))
+	elif [ $arg == '--help' ]; then
+		#usage
+		exit 1
+	elif [ -f $arg ]; then
+		chkpath=$arg
+	else
+		exit 1
+	fi
+done
+
+#Se le condizioni per la validazione dell'input falliscono, viene stampato un errore sullo stderr e viene ristampato lo usage su stdout
+if [[ ( $countf != 0 && $counts != 0 && ( $countf == $counts ) ) || ( $countf > 1 ) || ( $counts > 1 ) || ( $chkpath == "" ) ]]; then
+	echo 1>&2 "[!!]Errore: Opzioni da linea di comando errate"
+	exit 1
+fi
+
+#Se l'esecuzione arriva qui, non ci sono errori nel parsing degli argomenti da linea di comando, dunque si procede con il controllo del file.
+#Si assegna a 3 il file descriptor da utilizzare per leggere la configurazione del pianeta 
+exec 3< $chkpath
+
+read -u 3 rows	
+read -u 3 cols
+
+rows=$(echo $rows | tr -d '[[:space:]]')
+cols=$(echo $cols | tr -d '[[:space:]]')
+
+if [[ ( $cols == 0  ) || ( $rows == 0 ) ]];then
+	echo 1>&2 "Errore: Non è possibile gestire una matrice 0x0"
+	exit 1
+fi
+
+rowcount=0
+fishcount=0
+sharkcount=0
+colcount=1
+
+if ! [[ $rows =~ ^-?[0-9]+$  && $cols =~ ^-?[0-9]+$ ]];then
+	echo 1>&2 "Errore: Valori di riga e colonna non numerici"
+	exit 1
+fi
+
+for row in $(seq 1 $rows); do
+	read -u 3 actualrow
+	arraycol=$(echo $actualrow | tr " " "\n")
+	(( colcount=0 ))
+	
+	for col in ${arraycol[*]};do
+		if [ $col == 'F' ]; then
+			(( fishcount++ ))
+			(( colcount++ ))
+		elif [ $col == 'S' ]; then
+			(( sharkcount++ ))
+			(( colcount++ ))
+		elif [ $col != 'W' ]; then
+			echo 1>&2 "Errore: Formato non corretto"
+			exit 1
+		else
+			(( colcount++ ))
+		fi
+	done
+	
+	if [ $colcount != $cols ]; then
+		echo 1>&2 "Errore: Numero di colonne errato sulla riga $row"
+		exit 1
+	fi
+	
+	(( rowcount++ ))
+done
+
+exec 3>&-
+
+if [ $rowcount != $rows ]; then
+	echo 1>&2 "Errore: Numero di righe errato"
+	exit 1
+fi
+
+if [ $countf == 1 ]; then
+	echo $fishcount
+elif [ $counts == 1 ]; then
+	echo $sharkcount
+fi
+echo "OK" 1>&2
+
+exit 0

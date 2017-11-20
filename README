@@ -1,0 +1,7 @@
+###########################################
+# ISTRUZIONI PER LA COMPILAZIONE          #
+###########################################
+
+Per la corretta compilazione, eseguire:
+	make lib
+	make wator

@@ -12,7 +12,7 @@ FILE_DA_CONSEGNARE1=wator.c wator.h ../lib/wator.h ../lib/wator.c
 FILE_DA_CONSEGNARE2= 
 
 # terzo frammento 
-FILE_DA_CONSEGNARE3=wator.c wator.h ../lib/wator.h ../lib/wator.c finale.pdf compressiontest ../lib/synqueue.c ../lib/synqueue.h makefilefinal
+FILE_DA_CONSEGNARE3=wator.c wator.h watorp.h watorp.c finale.pdf compressiontest watorscript ./synqueue.c ./synqueue.h makefilefinal visualizer.c visualizer.h README
 
 
 # Compilatore
@@ -32,8 +32,8 @@ LIBNAME2 = libSynqueue.a
 
 # Oggetti libreria $(LIBNAME1)
 # DA COMPLETARE (se si usano altri file sorgente)
-objects1 = ../lib/wator.o
-objects2 = ../lib/synqueue.o
+objects1 = wator.o
+objects2 = synqueue.o
 
 
 
@@ -43,12 +43,13 @@ EXE1=shark1
 EXE2=shark2
 EXE3=shark3
 
-.PHONY: clean cleanall lib test11 test12 consegna1 docu
-
+.PHONY: clean cleanall lib test11 test12 consegna1 docu init
 
 # creazione libreria 
 lib:  $(objects1) $(objects2)
+	-mkdir $(LIBDIR)
 	-rm  -f $(LIBNAME1)
+	-rm  -f $(LIBNAME2)
 	-rm  -f $(LIBDIR)/$(LIBNAME1)
 	-rm  -f $(LIBDIR)/$(LIBNAME2)
 	ar -r $(LIBNAME1) $(objects1)
@@ -87,7 +88,8 @@ test-three.o: test-three.c wator.h
 
 
 ######### target visualizer e wator (da completare)
-wator:	wator.o
+wator:	watorp.o
+	-mkdir ./tmp
 	$(CC) -o $@ $^ $(LIBS) -lWator -lpthread -lm -lSynqueue
 
 visualizer:	visualizer.o 
@@ -95,10 +97,10 @@ visualizer:	visualizer.o
 
 # make rule per gli altri .o del secondo/terzo frammento (***DA COMPLETARE***)
 
-wator.o:	wator.c wator.h visualizer
+watorp.o:	watorp.c watorp.h visualizer
 	$(CC) $(CFLAGS) -c $<
 	
-visualizer.o:	visualizer.c visualizer.h $(LIBNAME2)
+visualizer.o:	visualizer.c visualizer.h 
 	$(CC) $(CFLAGS) -c $<
 
 ########### NON MODIFICARE DA QUA IN POI ################
