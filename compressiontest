@@ -1,0 +1,55 @@
+#!/bin/bash
+#Test per la compressione dei dati di invio con algoritmo per sostituzione
+clear
+
+if [[ $1 == "" || ! -f $1 ]];then
+	echo "[!!] $0: Errore!"
+	exit 1
+fi
+
+string=$(tail -n +3 $1)
+string=$(echo $string | tr -d '[[:space:]]' | tr -d '\n')
+originalsize=${#string}
+array=( F W S )
+secondarray=( )
+echo -e "Original string: $string"
+echo "Original size: $originalsize bytes"
+c=0
+for i in ${array[*]};do
+	for j in ${array[*]};do
+		secondarray[$c]=`echo $i$j`
+		(( c++ ))
+	done
+done
+
+result=$string
+c=0
+for i in ${secondarray[*]};do
+	result=$(echo $result | sed "s/$i/$c/g")
+	(( c++ ))
+done
+
+echo ""
+echo "Final string: $result"
+echo "Final size: ${#result} bytes"
+riduzione=$(echo "100-(${#result}*100)/$originalsize" | bc)
+echo "Space saved: $riduzione%"
+echo ""
+
+new=$result
+c=0
+for i in ${secondarray[*]};do
+	new=$(echo $new | sed "s/$c/$i/g")
+	(( c++ ))
+done
+
+echo "Return to original..."
+echo "Decrypted string size: ${#new} bytes"
+
+if [ $new == $string ];then
+	echo "Equal strings? Yes"
+else
+	echo "Equal strings? No"
+fi
+
+exit 0
